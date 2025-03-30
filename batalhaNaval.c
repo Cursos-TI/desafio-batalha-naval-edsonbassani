@@ -23,44 +23,119 @@ bool posicionarNavioReto(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha,
 bool posicionarNavioDiagonal(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha, int coluna, bool diagonal_positiva);
 void criarHabilidadeCone(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]);
 void criarHabilidadeCruz(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]);
-void criarHabilidadeOctaedro(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]);
+void criarHabilidadeLosango(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]);
 void aplicarHabilidade(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int habilidade[TAM_HABILIDADE][TAM_HABILIDADE], int centro_linha, int centro_coluna);
 
+void lerCoordenadas(int *linha, int *coluna, const char *mensagem) {
+    printf("%s", mensagem);
+    scanf("%d %d", linha, coluna);
+    // Validação básica
+    while (*linha < 0 || *linha >= TAM_TABULEIRO || *coluna < 0 || *coluna >= TAM_TABULEIRO) {
+        printf("Coordenadas inválidas! Tente novamente (linha coluna): ");
+        scanf("%d %d", linha, coluna);
+    }
+}
+
+int lerInteiro(const char* mensagem) {
+    int valor;
+    char buffer[100]; // Para limpar entradas inválidas
+    
+    while (1) {
+        printf("%s", mensagem);
+        
+        if (scanf("%d", &valor) == 1) {
+            // Limpa o buffer de entrada
+            while (getchar() != '\n');
+            return valor;
+        } else {
+            printf("Entrada inválida! Digite um número.\n");
+            // Limpa o buffer para evitar loop infinito
+            scanf("%s", buffer);
+        }
+    }
+}
+
 int main() {
-    printf("=== Jogo de Batalha Naval - Nivel Mestre ===\n\n");
-    
-    // Declaração do tabuleiro 10x10
     int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO];
-    
-    // Inicializa o tabuleiro com água (0)
-    inicializarTabuleiro(tabuleiro);
-    
-    // Posiciona os navios (2 retos e 2 diagonais)
-    posicionarNavioReto(tabuleiro, 2, 2, true);   // Horizontal
-    posicionarNavioReto(tabuleiro, 0, 5, false);  // Vertical
-    posicionarNavioDiagonal(tabuleiro, 4, 1, true);  // Diagonal positiva
-    posicionarNavioDiagonal(tabuleiro, 1, 7, false); // Diagonal negativa
-    
-    // Matrizes para as habilidades
     int cone[TAM_HABILIDADE][TAM_HABILIDADE];
     int cruz[TAM_HABILIDADE][TAM_HABILIDADE];
-    int octaedro[TAM_HABILIDADE][TAM_HABILIDADE];
-    
-    // Cria os padrões das habilidades
+    int losango[TAM_HABILIDADE][TAM_HABILIDADE];
+    int opcao, tipo_navio, tipo_habilidade, linha, coluna;
+    bool sucesso;
+
+    // Inicializações
+    inicializarTabuleiro(tabuleiro);
     criarHabilidadeCone(cone);
     criarHabilidadeCruz(cruz);
-    criarHabilidadeOctaedro(octaedro);
-    
-    // Aplica as habilidades ao tabuleiro (coordenadas definidas no código)
-    aplicarHabilidade(tabuleiro, cone, 3, 3);      // Cone centrado em (3,3)
-    aplicarHabilidade(tabuleiro, cruz, 7, 7);      // Cruz centrada em (7,7)
-    aplicarHabilidade(tabuleiro, octaedro, 5, 2);  // Octaedro centrado em (5,2)
-    
-    // Exibe o tabuleiro
-    printf("Tabuleiro (10x10) com Habilidades Especiais:\n");
-    printf("Legenda: 0 = Agua, 3 = Navio, 5 = Habilidade\n\n");
-    exibirTabuleiro(tabuleiro);
-    
+    criarHabilidadeLosango(losango);
+
+    printf("=== BATALHA NAVAL - MODO INTERATIVO ===\n");
+
+    do {
+        printf("\n=== MENU PRINCIPAL ===\n");
+        printf("1. Posicionar navio\n");
+        printf("2. Usar habilidade\n");
+        printf("3. Visualizar tabuleiro\n");
+        printf("4. Sair\n");
+        
+        opcao = lerInteiro("Escolha: ");
+
+        switch (opcao) {
+            case 1: // Posicionar navio
+                printf("\n=== TIPO DE NAVIO ===\n");
+                printf("1. Horizontal (tamanho %d)\n", TAM_NAVIO);
+                printf("2. Vertical (tamanho %d)\n", TAM_NAVIO);
+                printf("3. Diagonal / (tamanho %d)\n", TAM_NAVIO);
+                printf("4. Diagonal \\ (tamanho %d)\n", TAM_NAVIO);
+                
+                tipo_navio = lerInteiro("Escolha: ");
+                linha = lerInteiro("Digite a linha inicial (0-9): ");
+                coluna = lerInteiro("Digite a coluna inicial (0-9): ");
+
+                switch (tipo_navio) {
+                    case 1: sucesso = posicionarNavioReto(tabuleiro, linha, coluna, true); break;
+                    case 2: sucesso = posicionarNavioReto(tabuleiro, linha, coluna, false); break;
+                    case 3: sucesso = posicionarNavioDiagonal(tabuleiro, linha, coluna, true); break;
+                    case 4: sucesso = posicionarNavioDiagonal(tabuleiro, linha, coluna, false); break;
+                    default:
+                        printf("Opção inválida!\n");
+                        sucesso = false;
+                }
+                printf(sucesso ? "Navio posicionado com sucesso!\n" : "Falha ao posicionar navio!\n");
+                break;
+
+            case 2: // Usar habilidade
+                printf("\n=== HABILIDADES ===\n");
+                printf("1. Cone (triângulo)\n");
+                printf("2. Cruz (+)\n");
+                printf("3. Losango (octaedro)\n");
+                
+                tipo_habilidade = lerInteiro("Escolha: ");
+                linha = lerInteiro("Digite a linha central (0-9): ");
+                coluna = lerInteiro("Digite a coluna central (0-9): ");
+
+                switch (tipo_habilidade) {
+                    case 1: aplicarHabilidade(tabuleiro, cone, linha, coluna); break;
+                    case 2: aplicarHabilidade(tabuleiro, cruz, linha, coluna); break;
+                    case 3: aplicarHabilidade(tabuleiro, losango, linha, coluna); break;
+                    default: printf("Opção inválida!\n");
+                }
+                break;
+
+            case 3: // Visualizar tabuleiro
+                printf("\n=== TABULEIRO ===\n");
+                exibirTabuleiro(tabuleiro);
+                break;
+
+            case 4:
+                printf("Encerrando o jogo...\n");
+                break;
+
+            default:
+                printf("Opção inválida! Tente novamente.\n");
+        }
+    } while (opcao != 4);
+
     return 0;
 }
 
@@ -142,26 +217,27 @@ bool posicionarNavioReto(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha,
 }
 
 // Posiciona um navio diagonal (positiva: / ou negativa: \)
-bool posicionarNavioDiagonal(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], int linha, int coluna, bool diagonal_positiva) {
-    // Verifica se todas as posições do navio são válidas
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        int linha_atual = linha + i;
-        int coluna_atual = diagonal_positiva ? coluna + i : coluna - i;
-        
-        if (!posicaoValida(tabuleiro, linha_atual, coluna_atual)) {
-            return false;
-        }
-    }
-    
-    // Posiciona o navio
-    for (int i = 0; i < TAM_NAVIO; i++) {
-        int linha_atual = linha + i;
-        int coluna_atual = diagonal_positiva ? coluna + i : coluna - i;
-        
-        tabuleiro[linha_atual][coluna_atual] = NAVIO;
-    }
-    
-    return true;
+bool posicionarNavioDiagonal(int tabuleiro[TAM_TABULEIRO][TAM_TABULEIRO], 
+    int linha, int coluna, 
+    bool diagonal_positiva) {
+// Verifica se todas as posições são válidas
+for (int i = 0; i < TAM_NAVIO; i++) {
+int linha_atual = linha + i;
+int coluna_atual = diagonal_positiva ? coluna + i : coluna - i;
+
+if (!posicaoValida(tabuleiro, linha_atual, coluna_atual)) {
+return false;
+}
+}
+
+// Posiciona o navio
+for (int i = 0; i < TAM_NAVIO; i++) {
+int linha_atual = linha + i;
+int coluna_atual = diagonal_positiva ? coluna + i : coluna - i;
+
+tabuleiro[linha_atual][coluna_atual] = NAVIO;
+}
+return true;
 }
 
 // Cria matriz de habilidade Cone (formato triangular apontando para baixo)
@@ -193,7 +269,7 @@ void criarHabilidadeCruz(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]) {
     }
 }
 
-// Cria matriz de habilidade Octaedro (formato de losango)
+// Cria matriz de habilidade losango (octaedro)
 void criarHabilidadeOctaedro(int habilidade[TAM_HABILIDADE][TAM_HABILIDADE]) {
     int centro = TAM_HABILIDADE / 2;
     for (int i = 0; i < TAM_HABILIDADE; i++) {
